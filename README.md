@@ -4,7 +4,15 @@ Nanodegree: Full Stack Web Developer
 
 ### PTYHON 3
 Runs on git command line using vagrant virtual machine through virtual box  
-Used Postgresql
+Used PostgreSQL
+
+## Instructions to Run:
+1. In git navigate to vagrant folder
+2. Navigate to newsdata.sql database
+3. Run 'vagrant up' and 'vagrant ssh' to start vagrant virtual machine
+4. Run 'psql -d news -f newsdata.sql' to create PostgreSQL databse from newsdata.sql
+5. Run 'psql -d news' to navigate the news database in PostgreSQL
+6. Run 'python report.py' to run reporting tool
 
 ## Files:  
 newsdata.zip --> zip file of newsdata SQL database  
