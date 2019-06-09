@@ -1,31 +1,13 @@
 import psycopg2
-import bleach
-import datetime
 
 ### USING PYTHON3 ###
 
 DBNAME = "news"
 
-
-# maybe not needed
-def delete_spam():
-    """Deletes spam from database"""
-    db = psycopg2.connect(database=DBNAME)
-    c = db.cursor()
-    # delete spam
-    c.execute("delete from log "
-              "where path like '/' "
-              "or path like '%spam%' "
-              "or path like '%20%'"
-              "or path like '%+%';")
-    # execute the changes in the database
-    db.commit()
-    # close the database
-    db.close()
-
-
 def create_views():
-    """creates new table called article_path by splitting log.path from the /article/"""
+    """creates new table called article_path by splitting log.path from the /article/
+    creates new table called total_requests, to count total requests by day
+    creates new table called error_requests to count error requests by date"""
     db = psycopg2.connect(database=DBNAME)
     c = db.cursor()
     # count total of paths in descending order# #
@@ -45,23 +27,15 @@ def create_views():
               "WHERE log.status != '200 OK' "
               "GROUP BY date, log.status "
               "ORDER BY error DESC;")
-    # c.execute("select * from article_path limit 10;")
-    # posts = c.fetchall()
     db.commit()
     db.close()
-    # return posts
-
-
-create_views()
 
 
 # Most Popular Articles
 def count_top_articles():
-    """Return all posts from the database"""
+    """Prints top 3 most popular articles in descending order"""
     db = psycopg2.connect(database=DBNAME)
     c = db.cursor()
-    # delete spam posts from log table - not needed since they aren't in the slug
-    # delete_spam()
     # count total of paths in descending order# #
     c.execute("SELECT title, count(*) AS num_views "
               "FROM articles, article_path "
@@ -75,12 +49,9 @@ def count_top_articles():
         print('\"{0}\" - {1} views'.format(post[0], post[1]))
     return posts
 
-
-count_top_articles()
-
-
 # Most Popular Authors
 def count_popular_authors():
+    """Prints authors in descending order of most popular of articles viewed"""
     db = psycopg2.connect(database=DBNAME)
     c = db.cursor()
     # sum the views of all articles written by author
@@ -98,11 +69,9 @@ def count_popular_authors():
     return posts
 
 
-count_popular_authors()
-
-
 # Days where more than 1% of request led to error
 def errors():
+    """Prints the days when percentage of total requests resulting in errors is greater than 1%"""
     db = psycopg2.connect(database=DBNAME)
     c = db.cursor()
     # use the two views created to divide errors by total requests, show if over 1%
@@ -112,11 +81,27 @@ def errors():
               "AND (error/total::DECIMAL * 100) > 1.0;")
     posts = c.fetchall()
     db.close()
-    print('\nDays where more than 1% of requests led to errors')
+    print('\nDay(s) where more than 1% of requests led to errors')
     # print(posts)
     for post in posts:
         day = post[1].strftime('%B %d, %Y')
         print('{0} - {1}% errors'.format(day, "%.2f" % post[0]))
     return posts
 
-errors()
+
+## Main Program ##
+def main():
+    # Create views in database for easier manipulation
+    create_views()
+
+    # Most popular articles
+    count_top_articles()
+
+    # Most popular authors
+    count_popular_authors()
+
+    # Percent of total requests resulting in errors
+    errors()
+
+if __name__ == '__main__':
+    main()
