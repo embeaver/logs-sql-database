@@ -10,7 +10,7 @@ def create_views():
     creates new table called error_requests to count error requests by date"""
     db = psycopg2.connect(database=DBNAME)
     c = db.cursor()
-    # count total of paths in descending order# #
+    # splits lot.path from the /article/
     c.execute("CREATE or REPLACE view article_path AS "
               "SELECT path, split_part(path, '/', 3) AS "
               "article_name FROM log;")
