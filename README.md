@@ -21,20 +21,20 @@ log
 - path, ip, method, status, time, id
 
 ## Creating Views in SQL database
-- article_path: splits log.path from the '/article/' so it can be connected to articles.slug
-"CREATE or REPLACE view article_path AS "
+article_path: splits log.path from the '/article/' so it can be connected to articles.slug
+- "CREATE or REPLACE view article_path AS "
               "SELECT path, split_part(path, '/', 3) AS "
               "article_name FROM log;"
               
-- total_requests: total requests by day for use in calculating percentage of errors
-"CREATE or REPLACE view total_requests AS "
+total_requests: total requests by day for use in calculating percentage of errors
+- "CREATE or REPLACE view total_requests AS "
               "SELECT DATE_TRUNC('day', time) AS day, COUNT(id) AS total "
               "FROM log "
               "GROUP BY day "
               "ORDER BY total DESC;"
               
-- error_requests: total errors by day for use in calculating percentage of errors
-"CREATE or REPLACE view error_requests AS "
+error_requests: total errors by day for use in calculating percentage of errors
+- "CREATE or REPLACE view error_requests AS "
               "SELECT DATE_TRUNC('day', time) AS date, COUNT(id) AS error, status "
               "FROM log "
               "WHERE log.status != '200 OK' "
