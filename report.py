@@ -5,6 +5,7 @@ import psycopg2
 
 DBNAME = "news"
 
+
 def create_views():
     """creates new table called article_path by splitting log.path
     from the /article/
@@ -16,25 +17,25 @@ def create_views():
     c = db.cursor()
     # splits lot.path from the /article/
     c.execute("""
-            CREATE or REPLACE view article_path AS 
-              SELECT path, split_part(path, '/', 3) AS 
+            CREATE or REPLACE view article_path AS
+              SELECT path, split_part(path, '/', 3) AS
               article_name FROM log;
               """)
     # Total requests by day
     c.execute("""
-            CREATE or REPLACE view total_requests AS 
-              SELECT DATE_TRUNC('day', time) AS day, COUNT(id) AS total 
-              FROM log 
-              GROUP BY day 
+            CREATE or REPLACE view total_requests AS
+              SELECT DATE_TRUNC('day', time) AS day, COUNT(id) AS total
+              FROM log
+              GROUP BY day
               ORDER BY total DESC;
               """)
     # Total error requests by day
     c.execute("""
-              CREATE or REPLACE view error_requests AS 
-              SELECT DATE_TRUNC('day', time) AS date, COUNT(id) AS error, status 
-              FROM log 
-              WHERE log.status != '200 OK' 
-              GROUP BY date, log.status 
+              CREATE or REPLACE view error_requests AS
+              SELECT DATE_TRUNC('day', time) AS date, COUNT(id) AS error, status
+              FROM log
+              WHERE log.status != '200 OK'
+              GROUP BY date, log.status
               ORDER BY error DESC;
               """)
     db.commit()
@@ -48,10 +49,10 @@ def count_top_articles():
     c = db.cursor()
     # count total of paths in descending order# #
     c.execute("""
-              SELECT title, count(*) AS num_views 
-              FROM articles, article_path 
-              WHERE articles.slug = article_path.article_name 
-              GROUP BY article_path.article_name, articles.title 
+              SELECT title, count(*) AS num_views
+              FROM articles, article_path
+              WHERE articles.slug = article_path.article_name
+              GROUP BY article_path.article_name, articles.title
               ORDER BY num_views DESC LIMIT 3;
               """)
     posts = c.fetchall()
@@ -69,12 +70,12 @@ def count_popular_authors():
     c = db.cursor()
     # sum the views of all articles written by author
     c.execute("""
-              SELECT name, count(*) AS num 
-              FROM authors, articles, article_path 
-              WHERE authors.id = articles.author 
-              AND article_path.article_name = articles.slug 
-              GROUP BY authors.name 
-              ORDER BY num DESC
+              SELECT name, count(*) AS num
+              FROM authors, articles, article_path
+              WHERE authors.id = articles.author
+              AND article_path.article_name = articles.slug
+              GROUP BY authors.name
+              ORDER BY num DESC;
               """)
     posts = c.fetchall()
     db.close()
@@ -90,11 +91,12 @@ def errors():
     greater than 1%"""
     db = psycopg2.connect(database=DBNAME)
     c = db.cursor()
-    # use the two views created to divide errors by total requests, show if over 1%
+    # use the two views created to divide errors by total requests,
+    # show if over 1%
     c.execute("""
-              SELECT (error/total::DECIMAL * 100) AS percentage, day 
-              FROM total_requests, error_requests 
-              WHERE total_requests.day = error_requests.date 
+              SELECT (error/total::DECIMAL * 100) AS percentage, day
+              FROM total_requests, error_requests
+              WHERE total_requests.day = error_requests.date
               AND (error/total::DECIMAL * 100) > 1.0;
               """)
     posts = c.fetchall()
